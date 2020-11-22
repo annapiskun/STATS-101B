@@ -1,0 +1,178 @@
+---
+title: "Stats 101B Homework #5"
+author: "Anna Piskun (505109399) - Discussion 1A"
+date: "5/22/2020"
+output: 
+    pdf_document:
+      latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Desktop")
+```
+
+### Question 1 
+
+An aluminum master alloy manufacturer produces grain refiners in ingot form. The company produces the product in four furnaces. Each furnace is known to have its own unique operating characteristics, so any experiment run in the foundry that involves more than one furnace will consider furnaces as a nuisance variable. The process engineers suspect that stirring rate affects the grain size of the product. Each furnace can be run at four different stirring rates. A randomized block design is run for a particular refiner, and the resulting grain size data is as follows.
+
+```{r}
+data <- read.csv("hw5_Q1.csv")
+```
+
+(a) What kind of experimental design is the above experiment? Report your anova table.
+
+The above experiment is randomized block design and follows a fixed effects model (because Stirring Rate and Furnace are fixed). 
+
+```{r}
+model <- aov(GrainSize~factor(Furnace) + factor(StirringRate), data = data)
+summary(model)
+```
+
+(b) Is there any evidence that stirring rate affects grain size?
+
+Looking at the above anova table, since the pvalue for the stirring rate treatment factor is greater than 0.05, we fail to reject the null hypothesis meaning that there is no difference in grain size as a result of different stirring rates.
+
+(c) Graph the residuals from this experiment on a normal probability plot. Interpret this plot.
+
+```{r}
+plot(model, which = 2)
+```
+
+Looking at the normal probability plot above, there is significant deviation from a straight line indicating that the errors are not normally distributed. As such, the normality assumption is not valid. 
+
+(d) Plot the residuals versus furnace and stirring rate. Does this plot convey any useful information?
+
+```{r}
+library(lattice)
+df1 <- data.frame(x = as.factor(data$StirringRate), y = model$residuals)
+xyplot(y~x, data = df1, 
+        xlab = "Stirring Rate",
+       ylab = "Residuals")
+df2 <- data.frame(x = as.factor(data$Furnace), y = model$residuals)
+ xyplot(y~x, data = df2, 
+        xlab = "Type of Furnace",
+        ylab = "Residuals")
+```
+
+Analyzing the plots for residuals vs. furnace and residuals vs. stirring rate, we see that there are equal points above and below 0 at each stirring rate indicating good model fit. Additionally, the fluctuations of residuals within each factor are similar across all four levels indicating that the constant variance assumption is satisfied. 
+
+
+(e) What should the process engineers recommend concerning the choice of stirring rate and furnace for this particular grain refiner if small grain size is desirable?
+
+```{r}
+by(data$GrainSize, factor(data$StirringRate), function(x) mean(x))
+
+by(data$GrainSize, factor(data$Furnace), function(x) mean(x))
+```
+
+Looking at the above marginal averages (although stirring rate does not prove to be significant in effecting grain size) engineers should recommend a stirring rate of 5 rpm and either Furnace 3 or 4 (both produce similar grain sizes). 
+
+### Question 2
+
+The effect of five different ingredients (A, B, C, D, E) on the reaction time of a chemical process is being studied. Each batch of new material is only large enough to permit five runs to be made. Furthermore, each run requires approximately hours, so only five runs can be made in one day. The experimenter decides to run the experiment as a Latin square so that day and batch effects may be systematically controlled. She obtains the data that follow. Analyze the data from this experiment (use ( 𝛼 = 0.05) and draw conclusions
+
+```{r}
+y <- c(8,11,4,6,4,7,2,9,8,2,1,7,10,6,3,7,3,1,6,8,3,8,5,10,8)
+batch <- as.factor(rep(c(1:5), times = 5))
+day <- as.factor(c(rep(1,5), rep(2,5), rep(3,5), rep(4,5), rep(5,5)))
+ingredients <- as.factor(c("A", "C", "B", "D", "E", "B", "E", "A", "C", "D", "D", "A", "C", "E", "B", "C", "D", "E", "B", "A", "E", "B", "D", "A", "C"))
+df <- data.frame(y, batch, day, ingredients)
+df
+
+model.df <- lm(y ~ factor(batch) + factor(day) + factor(ingredients), data = df)
+anova(model.df)
+
+model.av <- aov(model.df)
+
+treatment.means <- vector(length = 5)
+
+for(j in c("A", "B", "C", "D", "E")) {
+  treatment.means[j] <- mean(y[ingredients==j])
+}
+
+treatment.means
+
+TukeyHSD(model.av)
+
+plot(model.df)
+
+```
+
+Looking at the above anova table, we see that the only statistically significant factor is ingredients indicating that the mean reaction time as a result of type of chemical ingredient are significantly different. We also can conclude that the effects of batch and day do not have an effect on reaction time since they have pvalues greater than 0.05 meaning we fail to reject the null hypothesis that there is a difference in the average reaction time. Analyzing the output of our Tukey's test, we see that the only significant between group difference is for Ingredients D and A, E and A, D and C, and and E and C. 
+
+The residual plot shows no clear pattern or fanshape indicating that the constant variance assumption is satisfied. This is further supported by the scale location plot which shows no increasing or decreasing trend. Likewise, the normal probability plot is fairly straight indicating that the errors are normally distributed and that the normality assumption is satisfied. 
+
+
+### Question 3
+
+The yield of a chemical process was measured using five batches of raw material, five acid concentrations, five standing times (A,B,C,D, E) and five catalyst concentrations. The Graeco-Latin square that follows was used. Analyze the data from this experiment (use a = 0.05) and draw conclusions. 
+
+```{r}
+data2 <- read.csv("HW5 Q3 data .csv")
+
+data2.av <- aov(Yield~factor(Batch) + factor(Acid) + factor(Time) + factor(Catalyst), data = data2)
+
+summary(data2.av)
+
+TukeyHSD(data2.av)
+
+```
+
+Looking at the above anova table we see that the only statistically significant factor is Time. Since its pvalue (essentially 0) is less than 0.05 we reject the null hypothesis and conclude that standing time effects the mean yield of a chemical process. Batch, Acid, and Catalyst, however, all have pvalue greater than 0.05 meaning we fail to reject the null hypothesis and they do not have an effect on the mean yield of a chemical process. The only significant between group differences is for Time B and Time A, Time D and A, Time E and C, and Time E and A. 
+
+
+### Question 4
+
+Many people now read on materials provided in an electronic format. Are Kindles, tablets, and computers, just as good as books? Both formats have their advantages and disadvantages, but suppose we want to know the impact on reading retention. We wish to know if people can recall what they've read equally well in all four formats, or whether there are differences in recall. A secondary issue is whether recall is affected by the content of the reading. For this reason, we will prepare two excerpts for the subjects to read. One excerpt will be from a work of action, and the other from the news. Both excerpts are the same length (in terms of numbers of lines of text.)
+
+
+As "units", we have n children at a high school to serve as subjects (roughly ages ranging from 13 to 18). Students whose parents give them permission will be pulled out of class to participate in the study. We have an instrument (the technical term for an exam that measures some characteristic of a person) that measures how much of each reading sample the child remembers. High scores correspond to high memory retention.
+
+You will be asked to design three studies, and to compare them. You are welcome to make any assumptions you wish, but need to state them explicitly. For example, you might want to assume that a certain quality can be measured and/or observed.
+
+A. The description above mentions (at least) two nuisance factors, some of which we've addressed. What are they and why do you think they might be  potential confounding factors?
+
+One nuissance factor is age. If the subjects are ranging from 13-18 that can result in varying comprehension levels due to age and academic rigor in class. For example, an 18 year old would be around a senior in high school about to go to college while a 13 year old would be just starting high school. This age difference would definitely serve as a confounding factor. Another nuissance factor is the length of the passage as some lengths might be better suited for different mediums. Likewise, longer passages may be harder to focus on and as a result students will retain less information than that compared to a shorter passage. 
+
+B. Name two other possible nuisance factors
+
+Another possible nuisance factor is the subject area of material. For example, if you love science and read an article about science, you are more likely to retain more of information from it than someone who loves history and hates science. A fourth possible nuisance factor is the time of day at which the reading material is administered. For example, it might be harder to retain information later in the day as students may be tired vs. first thing in the morning when students are more fresh and alert. 
+
+C. Describe a two-way completely randomized design (with no blocking)
+
+<p>
+![Factor Diagram](/Users/annapiskun/Desktop/hw5.partC.pdf)
+<p>
+
+
+Since the degrees of freedom for the errors is n-8, we need to have more than 8 students or else the residuals will have 0 degrees of freedom and we can't quantify the errors. As such, we need a multiple of 8 based off of the interaction. Here I chose 16 because its the smallest number of students that allows for a balanced design with 2 students per treatment. 
+
+To carry out randomization, I would assign the subjects a number 1-16. The numbers are written on cards, shuffled, then dealt into four piles A (treatment 1-kindles), B (treatment 2-tablets), C (treatment 3-computers), and D (treatment 4-books) respectively. Then I would assign the piles a number 1 through 4, write the numbers on cards, shuffle them, and then seperate into two piles. Pile 1 corresponds to Fiction and Pile 2 corresponds to Non-Fiction.  Utilizing r code I would write: Sample(1:16,16). 
+
+D. Describe a two-way randomized completely block design (for one nuisance factor)
+
+<p>
+![Factor Diagram](/Users/annapiskun/Desktop/hw5.partD.pdf)
+<p>
+
+The blocking factor in this design would be by grade. I would have four blocks: freshman, sophomore, junior, and senior. I believe this will make a good blocking factor as a nuisance factor discussed above was the reading comprehension level variability for students in different grades and of different ages (a senior in high school vs. a freshman in high school). Through blocking by grade level, I will control for some of the outside variance that may affect reading comprehension. 
+
+I would first separate by block so there would be four groups: freshman, sophomore, junior, and senior each with 8 students. I would then assign each student a number 1-8, write them down on cards, shuffle, then deal equally into eight piles (which correspond to their interaction combination). Lastly, I'll assign each pile a number 1-8, write it down on cards, shuffle, and then seperate into another four piles. Each pile corresponds to a reading treatment. Then I would assign each pile a number 1-4, write it down on cards, shuffle, and then seperate into 2 piles. Pile 1 correponds to fiction and Pile 2 corresponds to Nonfiction. Utilizing r code I would write Sample(1:8, 8) and repeat to randomly sample within each block. 
+
+E. Describe a split plot/repeated measures design
+
+<p>
+![Factor Diagram](/Users/annapiskun/Desktop/hw5.partE.pdf)
+<p>
+
+Using split plot/repeated measures design you measure the same person twice for two different treatments (total number of data points = 32) - every student is a block, but whole purpose of switching to this design is because researchers suspect person to person variability is high (rather than doing latin squares).
+Therefore, first I would randomly assign the outside factor which in this case would be reading format. Using sample(1:8,8) the first two numbers get Kindle, the second 2 get Tablet, the third 2 get computer, and last 2 get book. Then, I would randomize the inside factor which in this study would be fiction vs. non fiction. To do so, I flip a coin for each student with heads being reading fiction first (non-fiction second) and tails being reading non-fiction first (fiction second). 
+
+
+F. Which study would you recommend and why?
+
+I would recommend split plot/repeated measures design as it allows researchers to see how one specific test subject changes as a result of the treatment factors and controls more for person to person variability which is high in this type of study. 
+
+
+

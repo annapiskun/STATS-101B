@@ -1,0 +1,192 @@
+---
+title: "Stats 101B Homework #2"
+author: "Anna Piskun (505109399) - Discussion 1A"
+date: "4/15/2020"
+output: 
+    pdf_document:
+      latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Desktop")
+```
+
+### Question 1: 
+
+Create two cause-and-effect diagrams for the One-Way ANOVA on the male Islanders (testing their blood cholesterol level based on their Age bracket: (9-19), (20- 29), (30-39), (45 and older). This should be a balanced design with 8 males in each bracket: A total of 32 males).
+
+(a) Create a cause-effect diagram classify the factors affecting blood cholesterol level in terms of Measurement, Materials, People, Environment, Methods, Machines.
+
+See attached photo. 
+
+<p>
+![Cause and Effect Diagrams](/Users/annapiskun/Desktop/hw2.1a.pdf)
+<p>
+
+
+(b) Create another cause-effect diagram classify the factors in terms of Uncontrollable, Controllable, Nuisance (blocking), Held-constant.
+
+See attached photo. 
+
+<p>
+![Cause and Effect Diagrams](/Users/annapiskun/Desktop/hw2.1b.pdf)
+<p>
+
+
+(c) Provide a graphical analysis of your results to investigate the relationship between Age bracket and blood cholesterol level. Write a short paragraph explaining what does the plot indicate.
+
+```{r}
+data <- read.csv("hw2.1.csv")
+
+library(ggplot2)
+ggplot(data, aes(x=as.factor(ordered(bracket, levels = c("9 to 19", "20 to 29", "30 to 39", "45 and older"))), y=cholesterol)) + 
+    geom_boxplot(fill="slateblue", alpha=0.2) + 
+    xlab("Age Bracket") + ylab("Blood Cholesterol (mg/dl)") + stat_summary(fun.y=mean, geom="point", shape=20, size=4, color="blue", fill="red") +
+    ggtitle("Blood Cholesterol for Males of Various Ages") 
+```
+
+The above boxplot with the average blood cholesterol of each age group overlayed on top indicates no definitive difference in blood cholesterol levels across the varying age brackets. The median blood cholesterol level is relatively similar for all four age ranges. While the average blood cholesterol level varies slightly, all four age brackets are generally within the 150 to 180 range. While the 9-19 bracket shows slightly higher blood cholesterol and the 20-29 bracket is slightly lower, we must conduct further analysis to make a definitive conclusion since this variation can be in part to a plethora of other factors such as weight, pre-existing conditions, and diet. The boxplots also shows evidence for a couple of outliers for the age bracket of 20 to 29 and 30 to 39. 
+
+(d) Perform an ANOVA (effects model) to determine if Age bracket is a significant factor. Interpret the results.
+
+```{r}
+summary(aov(cholesterol~factor(bracket), data = data))
+```
+
+H0: means are the same 
+
+HA: at least one mean is different 
+
+Performing an ANOVA test we find that since the F value is small and pvalue is greater than 0.05, we fail to reject the null hypothesis indicating that the mean blood cholesterol levels across all four age brackets are the same. This tells us that age bracket is not a significant factor and therefore there is no evidence suggesting that age affects blood cholesterol. 
+
+
+### Question 2
+
+A computer ANOVA output is shown below. Fill in the blanks. You may give bounds on the P-value.
+
+Error DF = 16 
+
+Error SS = 159.89
+
+Factor MS = SS/df = 36.15/3 = 12.05
+
+Error MS = SS/df = 159.89/16 = 9.993125
+
+F Value = Factor MS/Error MS = 12.05/9.993125 = 1.206
+
+P-value = 0.3395
+
+```{r}
+pf(1.2058290074, 3, 16, lower.tail = FALSE)
+```
+
+
+### Question 3
+
+An article in Bioelectromagnetics (“Electromagnetic Effects on Forearm Disuse Osteopenia: A Randomized, Double-Blind, Sham-Controlled Study,” Vol. 32, 2011, pp. 273–282) described a randomized, double-blind, sham-controlled, feasibility and dosing study to determine if a common pulsing electromagnetic field (PEMF) treatment could moderate the substantial osteopenia that occurs after forearm disuse. Subjects were randomized into four groups after a distal radius fracture, or carpal surgery requiring immobilization in a cast. Active or identical sham PEMF transducers were worn on the distal forearm for 1, 2, or 4h/day for 8 weeks starting after cast removal (“baseline”) when bone density continues to decline. Bone mineral density (BMD) and bone geometry were measured in the distal forearm by dual-energy X-ray absorptiometry (DXA) and peripheral quantitative computed tomography (pQCT). The data below are the percent losses in BMD measurements on the radius after 16 weeks for patients wearing the active or sham PEMF transducers for 1, 2, or 4h/day (data were constructed to match the means and standard deviations read from a graph in the paper).
+
+```{r}
+data2 <- read.csv("HW2 Q3 Data.csv")
+```
+
+a) Is there evidence to support a claim that PEMF usage affects BMD loss? If so, analyze the data to determine which specific treatments produce the differences.
+
+H0 : none of the treatments will cause a change (aka Ti = 0 for all i)
+
+HA : at least one of the treatments will cause a change (aka Ti does not = 0 for at least one i)
+
+```{r}
+model <- aov(BMD~factor(Condition), data = data2)
+summary(model)
+```
+
+Looking at the data provided by the above output, since the F value is small and the pvalue is large (0.281 > 0.05) we fail to reject the null hypothesis. Therefore there is evidence to support the claim that none of the treatments will cause a change meaning that there is no difference between the treatments. Thus, there is no evidence supporting the claim that PEMF usage affects BMD loss.  
+
+b) Analyze the residuals from this experiment and comment on the underlying assumptions and model adequacy.
+
+```{r}
+plot(model)
+```
+
+Analyzing the residual plot above, there is no clear trend or increasing/decreasing fanshape, therefore the constant variance assumption of the residuals is satisfied. Paired with the normal probability plot, we see that the points follow a relatively straight line indicating that the residuals also satisfied the normality assumption. Additionally, the scale-location is relatively flat with no increasing or decreasing trends. Thus, the residuals show that the model is adequate. 
+
+### Question 4
+
+An article in the ACI Materials Journal (Vol. 84, 1987, pp. 213–216) describes several experiments investigating the rodding of concrete to remove entrapped air. A 3-inch & 6-inch cylinder was used, and the number of times this rod was used is the design variable. The resulting compressive strength of the concrete specimen is the response. The data are shown in the following table:
+
+```{r}
+data3 <- read.csv("hw2.4.csv")
+```
+
+a) Is there any difference in compressive strength due to the rodding level? Use (α= 0.05).
+
+H0: T1 = T2 = T3 = T4 = 0
+
+HA: Ti does not = 0 for at least one i
+
+Manual Computation: 
+
+total/N = 18580/12 = 1548.333
+
+SStotal = (1530-1548.333)^2 + (1610-1548.333)^2 + ... + (1510-1548.333)^2 = 69566.667
+
+SStreatments = (3(1500-1548.333)^2) + (3(1586.667-1548.33)^2) + (3(1606.667 - 1548.333)^2) + (3(1500-1548.333)^2) = 28633.52667
+
+SSerror = SStotal - SStreatments = 40933.14
+
+DF of Rodding Level = Number of conditions - 1 = 3 
+
+DF of Error = Number of Observations - Number of Conditions = 12 - 4 = 8 
+
+MStreatment = SStreatment/DFtreatment = 28633.52667/3 = 9544.50889
+
+MSerror = SSerror/DFerror = 40933.14/8 = 5116.6425
+
+F value = MStreatment/MSerror = 1.8654 
+
+P value = 0.214 
+
+
+Confirmation with R: 
+
+```{r}
+m2 <- aov(strength~factor(level), data = data3)
+summary(m2)
+```
+
+Looking at our calculations, since we find that the f value is small and the pvalue is consequentially large (greater than 0.05), we fail to reject the null hypothesis and therefore there is no difference in compressive strength due to the rodding level. 
+
+b) Find the P-value for the F statistic in part (a).
+
+```{r}
+pf(1.8654, 3, 8, lower.tail = FALSE)
+```
+
+c) Analyze the residuals from this experiment. What conclusions can you draw about the underlying model assumptions?
+
+```{r}
+plot(m2)
+```
+
+Analyzing the above residual plot, we see a slight increasing fan shape indicating nonconstant variance and not satisfying the constant variance assumption. Looking at the normal probability plot, there is slight deviation from a straight line, but nonetheless all the points still follow a relatively straight line thus satisfying the assumption that the residuals are normally distributed. The scale-location plot shows a clear upwards trend which also confirms non constant variance. Therefore, the model is not valid. 
+
+
+d) Construct a graphical display to compare the treatment means as described in your lecture notes. 
+
+```{r}
+library(ggplot2)
+ggplot(data3, aes(x=factor(level), y=strength, fill = factor(level))) +
+  geom_dotplot(binaxis='y', stackdir='center') +
+  stat_summary(fun.y=mean, geom="point", shape=18,
+                 size=5, color="black") + guides(fill = FALSE) + 
+  xlab("Rodding Level (with associated mean value)") + 
+  ylab("Compressive Strength") + 
+  ggtitle("Compressive Strength Based on Rodding Level")
+
+```
+
+From this dot plot, we see that Rodding Level 10 has the lowest mean compressive strength (and it also the same as the mean compressive strength for Rodding Level 25), and Rodding level 20 has the highest mean compressive strength. 
+
+
+

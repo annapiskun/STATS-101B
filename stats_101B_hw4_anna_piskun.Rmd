@@ -1,0 +1,119 @@
+---
+title: "Stats 101B Homework #4"
+author: "Anna Piskun (505109399) - Discussion 1A"
+date: "5/16/2020"
+output: 
+    pdf_document:
+      latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Desktop")
+```
+
+### Question 1: 
+
+List the variables measured in this study. Response, factors, blocks, held constant-factors. What would you add to enhance this study in terms of factors and design?
+
+Response Variable- Reading comprehension test score, word-chain test (number of word-chains solved in 4 mins), single-word-item semantic vocabulary test
+
+Factors - digital (computer) texts, paper texts
+
+Blocks - school (two urban primary schools in Norway were used) and gender 
+
+Held-Constant Factors - Age (all were 10th graders), Ethnicity, Socio-economic status, Environment (students' resptive classrooms), Country (Norway), type of font, type of computer screen
+
+
+In terms of experimental design, if given a sample size of 72 and unlimited resources I would have utilized a repeated measures design to enhance the overall study. Given unlimited time and resources, 4 weeks after taking the pretest (as specified by the original design), I would have all participants read the texts on paper and then complete the following reading comprehension test. 4 weeks after that, I would have all participants read another text digitally (still consisting of a narrative and expository text produced by The Reading Centre with Cronbach's alppha >0.75). I would then compare reading comprehension vs. reading modality for each participant. Thus, each subject would be treated as a block which inherently decreases variability and increases power (without needing to increase sample size, which we later see is a significant flaw in this study). 
+
+In order to enhance the study I would significantly increase sample size (to increase the overall power of the study), sampling more schools and more 10th grade students. This also as a result introduced more blocks which will help decrease variability as well. I would also introduced balanced group design, meaning both treatment groups (digital vs. paper text) get an equal number of participants. Additionally, to further improve upon the experimental design I would add an interaction between the sex and condition variables. As seen below, there is evidence of an interaction that may help describe more of the variance in our model and as such should be included in our analysis to test for statistical signficance and reult in the best overall model. Lastly, in the final question we see how the three MLR models are not valid since all three fail to satisfy the constant variance condition. We can attempt to solve this problem and better fit the data by transforming either the response or predictor variables. Through utilizing a transformation, we will get a better model that is valid. 
+
+### Question 2: 
+
+How many participants were there? Do you think they are enough? What is the associated power with the sample size chosen in this study?
+
+There were 72 participants with 43% being females and 57% being males. The associated power with the sample size chosen in this study is approximately 0.058 for an effect size of -0.02, 0.063 for an effect size of -0.03, and 0.08 for an effect size of 0.06. Since power is extremely small (meaning the probability of finding a difference when a difference really does exist is low), there are not enough participants and we need to significantly increase the sample size. 
+
+<p>
+![Gpower calculations](/Users/annapiskun/Desktop/hw4.1.pdf)
+<p>
+
+
+<p>
+![Gpower Calculations](/Users/annapiskun/Desktop/hw4.2.pdf)
+<p>
+
+<p>
+![Gpower Calculations](/Users/annapiskun/Desktop/hw4.3.pdf)
+<p>
+
+### Question 3: 
+
+What does the author mean by “With respect to reliability, all texts used in this study, both for pretesting and in the main survey had Cronbach’s alpha>.75.”
+
+Generally speaking, Cronbach's alpha is a measure of "how related a set of items are as a group" (according to UCLA IDRE Statistical Consulting Center). It is used to measure within group consistency and is often used as a measure of scale reliability. Essentially, the cronbach's alpha sees how well a test measures what it should. A rule of thumb most statisticians follow is that a Cronbach's alpha of 0.70 and above is satisfactory (above .80 is better, and above .90 is best). Within the context of the author's research, this means that the scale formed by the reading comprehension questions in the pretest and actual test is reliable. Thus, the questions used in the pretest and actual test measured similar concepts indicating similar and reliable results. 
+
+
+### Question 4: 
+
+Using R, download the posted data and perform the t-tests posted on page 64 (section 3 Results). Then create an interaction plot using type of gender and condition to get “Word chain“ responses. Comment on your plot.
+
+```{r}
+data <- read.csv("HW 4 data Readtexts Article.csv")
+
+#Vocabulary T-Test 
+t.test(Vocabulary~Condition, data = data)
+
+#Word-chain T-test 
+t.test(Wordchain~Condition, data = data)
+
+#Reading Comprehension Pre Test T-test 
+t.test(Controlsum~Condition, data = data)
+
+#Interaction Plot
+interaction.plot(x.factor = data$Sex, trace.factor = data$Condition, 
+                 response = data$Wordchain, fun = base::mean, trace.label = "Reading Modality", 
+                 col = c("red", "blue"), 
+                 xlab = "Gender", ylab = "Average Wordchain Response", 
+                 main = "Interaction between Gender and Reading Modality") 
+        
+```
+
+Our first t-test for vocabulary gives us a pvalue of 0.891 meaning we fail to reject the null hypothesis, indicating there is not a difference in the mean score on the vocabulary test between electronic and paper texts. Same goes for the t-tests for Wordchain and Reading comprehension which found pvalues of 0.7699 and 0.9253 respectively. Therefore, we come to the same conclusion that both indicate there is no difference in the mean amount of wordchain responses and reading comprehension score between participants who used an electronic vs. paper text. 
+
+Looking at the above interaction plot, we see some indication of interaction between sex and condition because the lines are not parallel (in fact they cross each other), meaning they do not have equal rates of change.Thus, we must do further analysis to determine whether these interactions are significant. 
+
+
+### Question 5: 
+
+Using R, redo the MLR and the t-tests listed in tables 1 and 2 on page 65. What would be your final MLR. Summarize your results in an ANOVA table for each MLR in table 2. Check the assumptions. 
+
+```{r}
+
+#Table 2 MLR's
+model <- lm(TotalSum_Readingcompr~Vocabulary+Wordchain+Controlsum, data = data)
+summary(model)
+
+model.2 <- lm(TotalSum_Readingcompr~Vocabulary+Wordchain+Controlsum + Sex, data = data)
+summary(model.2)
+
+#Final MLR
+model.3 <- lm(TotalSum_Readingcompr~Vocabulary+Wordchain+Controlsum+Sex+Condition, data = data)
+summary(model.3)
+
+anova(model, model.2, model.3)
+
+anova(model, model.3)
+
+anova(model.3)
+
+plot(model.3)
+
+```
+
+
+Our final MLR would be the one that included Vocabulary, Word reading, Reading comprehension pretest, Sex, and reading modality as after controlling for the variance associated with with vocabulary, word-reading, reading comprehension, and gender, the reading modality variable accounted for additional variance and was therefore statistically significant. Looking at the ANOVA table for each MLR, we see that the third model is statistically significant when compared to the second model and likewise when compared to model 1, model 3 is still statistically significant. Therefore, as seen by analysis of our anova table, model 3 is our final MLR model with vocabulary, wordchain, being statistically significant variables and condition also being statistically significant given the reading comprehension pretest and sex variables are accounted for in our model. Our final model with the added variables helps to explain more of the variability in the data. 
+
+
+Looking at the diagnostic plots for this model, however, there is a slight backwards fanshape pattern and overall curvature in the residual plot indicating non-constant variance. The normal probability plot is relatively straight, however there is some significant deviation at the tails, indicating that the errors are not normally distributed. The scale-location plot shows a clear decreasing trend, which again confirms that the constant variance assumption is not satisfied. While there are no high leverage or influential points, since there is evidence of non-constant variance and the normality condition is not satisfied, our final model is not valid.
