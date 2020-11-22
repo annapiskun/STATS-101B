@@ -1,6 +1,6 @@
 ---
 title: "Stats 101B Homework #5"
-author: "Anna Piskun (505109399) - Discussion 1A"
+author: "Anna Piskun"
 date: "5/22/2020"
 output: 
     pdf_document:
